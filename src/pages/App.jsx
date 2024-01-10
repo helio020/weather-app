@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 import './App.css';
 import { Spinner } from '../components/spinner/Spinner';
+import {
+  getCityWeather,
+  getUserCurrentLocation,
+} from '../services/weather.service';
 
 function App() {
   const [searchedCity, setSearchedCity] = useState('');
@@ -8,39 +12,40 @@ function App() {
   const [weather, setWeather] = useState('');
   const [isLoading, setIsLoading] = useState('');
 
-  async function getCityWeather() {
-    setIsLoading(true);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (navigator.geolocation) {
+          const position = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject);
+          });
 
-    try {
-      const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/weather?q=${searchedCity}&appid=68dfa6e218e39b568308d8ac4fcef993&lang=pt_br&units=metric`,
-      );
-      const data = await response.json();
-      setWeather(data);
-      setCity(data.name);
-    } catch (error) {
-      alert('Cidade não encontrada');
-    } finally {
-      setIsLoading(false);
-    }
-  }
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
 
-  async function getLocation() {
-    try {
-      const response = await fetch(
-        `https://api.geoapify.com/v1/ipinfo?&apiKey=3d8ac1686e93495b992b4fb651f9c343`,
-      );
-      const data = await response.json();
-      setSearchedCity(data.city.name);
-      console.log(searchedCity);
-    } catch (error) {
-      alert('Cidade não encontrada');
-    }
-  }
+          const data = await getUserCurrentLocation(latitude, longitude);
+          setCity(data.name);
+          setWeather(data);
+        }
+      } catch (error) {
+        console.error('Erro ao obter a localização:', error.message);
+      }
+    };
 
-  function handleSubmit(event) {
+    fetchData().catch(console.error);
+  }, []);
+
+  async function handleSubmit(event) {
     event.preventDefault();
-    getCityWeather();
+    setIsLoading(true);
+    try {
+      const weather = await getCityWeather(searchedCity);
+      setCity(weather.name);
+      setWeather(weather);
+      setIsLoading(false);
+    } catch (error) {
+      alert('Cidade não encontrada');
+    }
   }
 
   function titleize(text) {
@@ -51,10 +56,6 @@ function App() {
     }
     return words.join(' ');
   }
-
-  useEffect(() => {
-    getLocation();
-  }, []);
 
   return (
     <div className="App">
@@ -67,7 +68,7 @@ function App() {
             onChange={event => setSearchedCity(event.target.value)}
           />
           <button type="submit">
-            {isLoading ? <Spinner /> : <span>Pesquisar Cidade</span>}
+            {isLoading ? <Spinner /> : <span>Pesquisar cidade</span>}
           </button>
         </form>
       </header>
