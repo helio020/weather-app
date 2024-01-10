@@ -1,16 +1,36 @@
 import { useEffect, useState } from 'react';
-import './App.css';
 import { Spinner } from '../components/spinner/Spinner';
 import {
   getCityWeather,
   getUserCurrentLocation,
 } from '../services/weather.service';
+import {
+  Button,
+  Container,
+  Form,
+  H1,
+  H2,
+  ImgMoon,
+  ImgSun,
+  Input,
+  InputCheckBox,
+  Label,
+  Main,
+  P,
+  Section,
+} from './styleApp';
+import { ThemeProvider } from 'styled-components';
+import { darkTheme, lightTheme } from '../themes/theme';
+import { GlobalStyles } from '../themes/GlobalStyles';
+import Sun from '../assets/sun-svgrepo-com.svg';
+import Moon from '../assets/moon-svgrepo-com.svg';
 
 function App() {
   const [searchedCity, setSearchedCity] = useState('');
   const [city, setCity] = useState('');
   const [weather, setWeather] = useState('');
   const [isLoading, setIsLoading] = useState('');
+  const [theme, setTheme] = useState('light');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -57,40 +77,57 @@ function App() {
     return words.join(' ');
   }
 
-  return (
-    <div className="App">
-      <header>
-        <form action="" onSubmit={handleSubmit}>
-          <input
-            type="text"
-            placeholder="Ex: Ipatinga"
-            value={searchedCity}
-            onChange={event => setSearchedCity(event.target.value)}
-          />
-          <button type="submit">
-            {isLoading ? <Spinner /> : <span>Pesquisar cidade</span>}
-          </button>
-        </form>
-      </header>
+  const handleThemeChange = () => {
+    setTheme(theme === 'light' ? 'dark' : 'light');
+  };
 
-      {city && weather && (
-        <main>
-          <h1>{city}</h1>
-          <section className="current-weather">
-            <h2>Tempo atual</h2>
-            <p>{Math.trunc(weather.main.temp)} °C</p>
-            <p>{titleize(weather.weather[0].description)}</p>
-            <div id="icon">
-              <img
-                id="wicon"
-                src={`https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`}
-                alt="Weather icon"
-              ></img>
-            </div>
-          </section>
-        </main>
-      )}
-    </div>
+  return (
+    <ThemeProvider theme={theme === 'light' ? lightTheme : darkTheme}>
+      <GlobalStyles />
+      <Container>
+        <InputCheckBox
+          type="checkbox"
+          id="darkmode-toggle"
+          onClick={() => handleThemeChange()}
+        ></InputCheckBox>
+        <Label htmlFor="darkmode-toggle">
+          <ImgSun src={Sun} alt="sun" className="sun" />
+          <ImgMoon src={Moon} alt="moon" className="moon" />
+        </Label>
+
+        <header>
+          <Form action="" onSubmit={handleSubmit} name="form">
+            <Input
+              type="text"
+              placeholder="Ex: Ipatinga"
+              value={searchedCity}
+              onChange={event => setSearchedCity(event.target.value)}
+            />
+            <Button type="submit">
+              {isLoading ? <Spinner /> : <span>Pesquisar cidade</span>}
+            </Button>
+          </Form>
+        </header>
+
+        {city && weather && (
+          <Main>
+            <H1>{city}</H1>
+            <Section className="current-weather">
+              <H2>Tempo atual</H2>
+              <P>{Math.trunc(weather.main.temp)} °C</P>
+              <P>{titleize(weather.weather[0].description)}</P>
+              <div id="icon">
+                <img
+                  id="wicon"
+                  src={`https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`}
+                  alt="Weather icon"
+                ></img>
+              </div>
+            </Section>
+          </Main>
+        )}
+      </Container>
+    </ThemeProvider>
   );
 }
 
