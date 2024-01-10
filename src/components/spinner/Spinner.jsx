@@ -1,6 +1,5 @@
-import { FaSpinner } from 'react-icons/fa';
-import './styles.css';
+import { SpinnerInAnimation } from './styleSpinner';
 
 export const Spinner = () => {
-  return <FaSpinner className="loading" />;
+  return <SpinnerInAnimation />;
 };
